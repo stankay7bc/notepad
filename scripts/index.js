@@ -14,11 +14,11 @@ const NB1 = {
 */
 
 /**
-* Notebook -> String
+* Array<Note> -> String
 */
-function createListView() {
+function createListView(records) {
   return `<header><h1>My Notes</h1></header>
-${notesRecords.reduce(processChild,"")}`;
+${records.reduce(processChild,"")}`;
 }
 
 function processChild(result,note,index) {
@@ -62,8 +62,11 @@ function makePreview(anote) {
 */
 
 const main = document.querySelector("main");
-function initView() {
-  main.innerHTML = createListView();
+/**
+* Array<Note> -> Void
+*/
+function initView(records) {
+  main.innerHTML = createListView(records);
 }
 
 

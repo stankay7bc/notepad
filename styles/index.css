@@ -3,6 +3,12 @@ body {
   justify-content:center;
 }
 
+#bar {
+  outline:1px dashed blue;
+  position:fixed;
+  right:1.25em;
+}
+
 main > header {
   position:absolute;
   color:red;
@@ -16,16 +22,13 @@ main {
   grid-row-gap:.75em;
   width:95%;
   justify-items:center;
+  top:1.5em;
 }
 
 article > header > h1 {
   font-size:1em;
   font-weight:normal;
   font-style:italic;
-}
-
-article, article > header, article > p, article > div {
-  /*outline:1px solid blue;*/
 }
 
 article { 
