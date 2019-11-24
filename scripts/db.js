@@ -17,6 +17,77 @@ const apiUrl = "https://api.github.com/gists";
 const id = "5a805f4cee576a9b0e3827153cf651d0";
 const url = `${apiUrl}/${id}`;
 
+function deleteVal(ts) {
+    let db = this;
+    var request = db.transaction(db.objectStoreNames[0],"readwrite")
+      .objectStore(db.objectStoreNames[0])
+      .get(ts);
+    request.onsuccess = event => {
+      //console.log(`note ${ts} deleted`);
+      console.log(event.target.result);
+    };
+}
+
+function getNotes(callback) {
+  let db = this;
+  const notesRecords = [];  
+  var objectStore = db.transaction(db.objectStoreNames[0]).objectStore(db.objectStoreNames[0]);
+  let index = objectStore.index("update");
+  //!!!
+  let cursorCallback = event => {
+    var cursor = event.target.result;
+    if (cursor) {
+      //console.log(cursor.key,cursor.value);
+      notesRecords.push(cursor.value);
+      cursor.continue();
+    }
+    else {
+      console.log("No more entries!");
+      callback(notesRecords);
+    }
+  }
+  /*objectStore.openCursor().onsuccess = cursorCallback*/
+  index.openCursor(undefined,"prev").onsuccess = cursorCallback;
+}
+
+/**
+ * @param {Array<Note>} notes 
+ * @returns Gist
+ */
+function prepUpdate(notes) {
+  let result = notes.reduce((obj,note)=>{
+    let filename = `${note.timestamp}.json`; 
+    obj.files[filename] = {
+      content: JSON.stringify(note),
+      filename: filename,
+    };
+    return obj;
+  },{
+    description: "My Notes",
+    files:{},
+  });
+  //console.log(result);
+  return result;
+}
+
+/**
+ * @param {Gist} data 
+ */
+function updateGist(data) {
+  fetch(url, {
+      method: 'PATCH', // or 'PUT'
+      body: JSON.stringify(data), // data can be `string` or {object}!
+      headers: new Headers({
+        'Content-Type': 'application/json',
+        'Authorization':`Basic ${btoa(`stankay7bc:${token}`)}`
+      })
+  }).then(function(response) {
+      return response.json();
+  }).then(function(response){
+      console.log(response);
+  });
+}
+
 (function() {
  
 
@@ -45,7 +116,7 @@ const url = `${apiUrl}/${id}`;
             JSON.parse(json.files[val].content));
           request.onsuccess = event => {
             console.log("data downloaded...");
-            getNotes(db,initView);
+            getNotes(initView);
           }
         }
       });
@@ -54,90 +125,19 @@ const url = `${apiUrl}/${id}`;
 
   request.onsuccess = function(event) {
     let db = event.target.result;
-    getNotes(db,initView);
-    //getNotes(db,prepUpdate);
+
+    getNotes.bind(db,(records)=>{
+      initView(records,deleteVal.bind(db));
+    })();
+
+    /*
+    document.body.querySelector("#bar button")
+      .addEventListener("click",((db)=>{
+        return () => {
+            getNotes(db,(notes)=>{
+            updateGist(prepUpdate(notes));
+          });
+        }
+      })(db));*/
   }
 })();
-
-function deleteVal(ts,callback) {
-  var request = indexedDB.open("notes");
-  request.onsuccess = event => {
-    let db = event.target.result;
-    var requestDel = db.transaction(db.objectStoreNames[0],"readwrite")
-      .objectStore(db.objectStoreNames[0])
-      .delete(ts);
-    requestDel.onsuccess = event => {
-      console.log(`note ${ts} deleted`);
-      callback();
-    };
-  }
-}
-
-function getNotes(db,callback) {
-
-  const notesRecords = [];  
-  var objectStore = db.transaction(db.objectStoreNames[0]).objectStore(db.objectStoreNames[0]);
-  let index = objectStore.index("update");
-  //!!!
-  let cursorCallback = event => {
-    var cursor = event.target.result;
-    if (cursor) {
-      //console.log(cursor.key,cursor.value);
-      notesRecords.push(cursor.value);
-      cursor.continue();
-    }
-    else {
-      console.log("No more entries!");
-      callback(notesRecords);
-    }
-  }
-  /*objectStore.openCursor().onsuccess = cursorCallback*/
-  index.openCursor(undefined,"prev").onsuccess = cursorCallback;
-}
-
-/**
-* Array<Note> -> GistObj 
-*/
-function prepUpdate(notes) {
-  let result = notes.reduce((obj,note)=>{
-    let filename = `${note.timestamp}.json`; 
-    obj.files[filename] = {
-      content: JSON.stringify(note),
-      filename: filename,
-    };
-    return obj;
-  },{
-    description: "My Notes",
-    files:{},
-  });
-  //console.log(result);
-  return result;
-}
-
-/**
- * GistObj -> Void
- */
-function updateGist(data) {
-  fetch(url, {
-      method: 'PATCH', // or 'PUT'
-      body: JSON.stringify(data), // data can be `string` or {object}!
-      headers: new Headers({
-        'Content-Type': 'application/json',
-        'Authorization':`Basic ${btoa(`stankay7bc:${token}`)}`
-      })
-  }).then(function(response) {
-      return response.json();
-  }).then(function(response){
-      console.log(response);
-  });
-}
-
-function syncToCloud() {
-  var request = indexedDB.open("notes");
-  request.onsuccess = function(event) {
-    let db = event.target.result;
-    getNotes(db,(notes)=>{
-      updateGist(prepUpdate(notes));
-    });
-  };
-}

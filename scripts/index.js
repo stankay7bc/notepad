@@ -23,10 +23,11 @@ ${records.reduce(processChild,"")}`;
 
 function processChild(result,note,index) {
   return result+
-`<article>
+//<div class="panel"><span onclick="deleteNote(${Number(note.timestamp)})">x</span></div>
+`<article noteId="${Number(note.timestamp)}">
 <header><h1>${(new Date(note.timestamp)).toLocaleString()}</h1></header>
 <p onclick="changeLocation(${note.timestamp})">${makePreview(note.body)}</p>
-<div class="panel"><span onclick="deleteNote(${Number(note.timestamp)})">x</span></div>
+<div class="panel"><span>x</span></div>
 </article>`;
 }
 
@@ -65,8 +66,20 @@ const main = document.querySelector("main");
 /**
 * Array<Note> -> Void
 */
-function initView(records) {
+function initView(records,delCallback) {
   main.innerHTML = createListView(records);
+  if(delCallback) {
+    document.querySelector("main")
+      .addEventListener("click",function (event){
+        if(event.target.tagName==="SPAN") {
+          //console.log(event.target);
+          delCallback(
+            Number(event.target
+              .parentElement
+                .parentElement.getAttribute("noteid")));
+        }
+      });
+  }
 }
 
 
