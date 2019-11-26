@@ -67,7 +67,7 @@ const main = document.querySelector("main");
 * Array<Note> -> Void
 */
 function initView(records,delCallback) {
-  main.innerHTML = createListView(records);
+  main.innerHTML = createListView(records.filter(note => note.body!=null));
   if(delCallback) {
     document.querySelector("main")
       .addEventListener("click",function (event){

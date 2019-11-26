@@ -17,36 +17,51 @@ const apiUrl = "https://api.github.com/gists";
 const id = "5a805f4cee576a9b0e3827153cf651d0";
 const url = `${apiUrl}/${id}`;
 
+/**
+ * @param {timestamp} ts 
+ */
 function deleteVal(ts) {
     let db = this;
-    var request = db.transaction(db.objectStoreNames[0],"readwrite")
-      .objectStore(db.objectStoreNames[0])
-      .get(ts);
+    let transaction = db.transaction(db.objectStoreNames[0],"readwrite");
+    let objectStore = transaction.objectStore(db.objectStoreNames[0]);
+    let request = objectStore.get(ts);
     request.onsuccess = event => {
-      //console.log(`note ${ts} deleted`);
-      console.log(event.target.result);
+      let data = event.target.result;
+      data.body = null;
+      data.update = Date.now();
+      let update = objectStore.put(data);
+      update.onsuccess = () => {};
+    };
+    transaction.oncomplete = () => {
+      window.location.reload();
     };
 }
 
-function getNotes(callback) {
-  let db = this;
+/**
+ * @param {IDBDatabase} db 
+ * @param {Array<Note> -> Void} callback 
+ */
+function getNotes(db,callback) {
+
   const notesRecords = [];  
-  var objectStore = db.transaction(db.objectStoreNames[0]).objectStore(db.objectStoreNames[0]);
+  let transaction = db.transaction(db.objectStoreNames[0]);
+  let objectStore = transaction.objectStore(db.objectStoreNames[0]);
   let index = objectStore.index("update");
-  //!!!
+
   let cursorCallback = event => {
-    var cursor = event.target.result;
+    let cursor = event.target.result;
     if (cursor) {
-      //console.log(cursor.key,cursor.value);
       notesRecords.push(cursor.value);
       cursor.continue();
-    }
-    else {
+    } else {
       console.log("No more entries!");
-      callback(notesRecords);
     }
   }
-  /*objectStore.openCursor().onsuccess = cursorCallback*/
+
+  transaction.oncomplete = () => {
+    callback(notesRecords);
+  };
+
   index.openCursor(undefined,"prev").onsuccess = cursorCallback;
 }
 
@@ -57,7 +72,7 @@ function getNotes(callback) {
 function prepUpdate(notes) {
   let result = notes.reduce((obj,note)=>{
     let filename = `${note.timestamp}.json`; 
-    obj.files[filename] = {
+    obj.files[filename] = (note.body===null) ? null : {
       content: JSON.stringify(note),
       filename: filename,
     };
@@ -71,21 +86,39 @@ function prepUpdate(notes) {
 }
 
 /**
+ * @param {IDBDatabase} db 
  * @param {Gist} data 
  */
-function updateGist(data) {
+function updateGist(db,data) {
   fetch(url, {
-      method: 'PATCH', // or 'PUT'
-      body: JSON.stringify(data), // data can be `string` or {object}!
+      method: 'PATCH', 
+      body: JSON.stringify(data), 
       headers: new Headers({
         'Content-Type': 'application/json',
         'Authorization':`Basic ${btoa(`stankay7bc:${token}`)}`
       })
   }).then(function(response) {
       return response.json();
-  }).then(function(response){
-      console.log(response);
+  }).then(function(json){
+      //console.log(json);
+      populateDB(db,json.files);
   });
+}
+
+/**
+ * @param {IDBDatabase} db 
+ * @param {Object} records 
+ */
+function populateDB(db,records) {
+  let transaction = db.transaction(db.objectStoreNames[0],"readwrite"); 
+  let noteObjStore = transaction.objectStore(db.objectStoreNames[0]);
+  for (val in records) {
+    var request = noteObjStore.add(
+      JSON.parse(records[val].content));
+  }
+  transaction.oncomplete = (event) => {
+    window.location.reload();
+  };
 }
 
 (function() {
@@ -109,35 +142,24 @@ function updateGist(data) {
       }).then(response=>{ 
         return response.json();
       }).then(json=>{
-        console.log(json.files);
-        let noteObjStore = db.transaction(ts,"readwrite").objectStore(ts);
-        for (val in json.files) {
-          var request = noteObjStore.add(
-            JSON.parse(json.files[val].content));
-          request.onsuccess = event => {
-            console.log("data downloaded...");
-            getNotes(initView);
-          }
-        }
+        populateDB(db,json.files);
       });
     }
   }
 
   request.onsuccess = function(event) {
     let db = event.target.result;
-
-    getNotes.bind(db,(records)=>{
+    getNotes(db,(records)=>{
       initView(records,deleteVal.bind(db));
-    })();
+    });
 
-    /*
     document.body.querySelector("#bar button")
       .addEventListener("click",((db)=>{
         return () => {
             getNotes(db,(notes)=>{
-            updateGist(prepUpdate(notes));
+            updateGist(db,prepUpdate(notes));
           });
         }
-      })(db));*/
+      })(db));
   }
 })();
