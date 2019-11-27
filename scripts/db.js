@@ -112,9 +112,12 @@ function updateGist(db,data) {
 function populateDB(db,records) {
   let transaction = db.transaction(db.objectStoreNames[0],"readwrite"); 
   let noteObjStore = transaction.objectStore(db.objectStoreNames[0]);
-  for (val in records) {
-    var request = noteObjStore.add(
-      JSON.parse(records[val].content));
+  let request = noteObjStore.clear();
+  request.onsuccess = () => {
+    for (val in records) {
+      var request = noteObjStore.add(
+        JSON.parse(records[val].content));
+    }
   }
   transaction.oncomplete = (event) => {
     window.location.reload();
