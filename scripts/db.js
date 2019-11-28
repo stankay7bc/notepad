@@ -95,7 +95,7 @@ function updateGist(db,data) {
       body: JSON.stringify(data), 
       headers: new Headers({
         'Content-Type': 'application/json',
-        'Authorization':`Basic ${btoa(`stankay7bc:${token}`)}`
+        'Authorization':`Basic ${btoa(`stankay7bc:${localStorage.getItem("token")}`)}`
       })
   }).then(function(response) {
       return response.json();
@@ -126,6 +126,9 @@ function populateDB(db,records) {
 
 (function() {
  
+  if(localStorage.getItem("token")===null) {
+    location.href += 'config.html';
+  }
 
   var request = indexedDB.open("notes");
 

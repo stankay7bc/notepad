@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Config page</title>
+  </head>
+  <body>
+    <form onsubmit="getToken(event)">
+        <input type="text" />
+        <input type="submit" />
+    </form>
+    <script>
+        function getToken(event) {
+          event.preventDefault();
+          let token = event.target.elements[0].value;
+          if(typeof token === 'string' && token.length == 40) {
+            localStorage.setItem("token",token);
+            location.assign(location.pathname.slice(0,-11));
+          }
+        }
+    </script>
+  </body>
+</html>
