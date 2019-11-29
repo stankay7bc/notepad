@@ -1,18 +1,3 @@
-var ts = Date.now();
-
-const NOTES = [ // Array<Note>
-  {
-    timestamp:ts+1,
-    body:"My local note 1", // <- a Note 
-    update:ts+1
-  },
-  {
-    timestamp:ts+2,
-    body:"My local note 2",
-    update:ts+2
-  },
-];
-
 const apiUrl = "https://api.github.com/gists";
 const id = "5a805f4cee576a9b0e3827153cf651d0";
 const url = `${apiUrl}/${id}`;
@@ -120,52 +105,7 @@ function populateDB(db,records) {
     }
   }
   transaction.oncomplete = (event) => {
+    localStorage.setItem("synced",true);
     window.location.reload();
   };
 }
-
-(function() {
- 
-  if(localStorage.getItem("token")===null) {
-    location.href += 'config.html';
-  }
-
-  var request = indexedDB.open("notes");
-
-  request.onupgradeneeded = function(event) {
-
-    let db = event.target.result;
-    let objStore = db.createObjectStore(ts, { keyPath: "timestamp" });
-    objStore.createIndex("update","update",{ unique: true })
-    objStore.transaction.oncomplete =  function(event) {
-      
-      /*NOTES.forEach(function(note) {
-        var request = noteObjStore.add(note);
-      }); */
-
-      fetch(url, {
-            method: 'GET',
-      }).then(response=>{ 
-        return response.json();
-      }).then(json=>{
-        populateDB(db,json.files);
-      });
-    }
-  }
-
-  request.onsuccess = function(event) {
-    let db = event.target.result;
-    getNotes(db,(records)=>{
-      initView(records,deleteVal.bind(db));
-    });
-
-    document.body.querySelector("#bar button")
-      .addEventListener("click",((db)=>{
-        return () => {
-            getNotes(db,(notes)=>{
-            updateGist(db,prepUpdate(notes));
-          });
-        }
-      })(db));
-  }
-})();

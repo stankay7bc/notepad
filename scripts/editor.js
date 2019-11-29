@@ -26,6 +26,7 @@
           data.update = Date.now();
           let req = objStore.put(data);  
           req.onsuccess = function(event) {
+            localStorage.setItem("synced",false);
             viewCallback();
             console.log("data updated");
           }
@@ -39,6 +40,7 @@
         };
         let request = objStore.add(note);
         request.onsuccess = event => {
+          localStorage.setItem("synced",false);
           viewCallback();
           history.replaceState(null,null,`${location.pathname}?note=${note.timestamp}`);
         }

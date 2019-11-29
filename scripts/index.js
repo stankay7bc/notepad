@@ -1,85 +1,47 @@
-/** 
-* DATA 
-const NB1 = {
-  body:"My Notes",
-  children: [
-    {body:"my first note"},
-    {body:"my second note"},
-  ]
-};
-*/
+(function() {
+ 
+  if(localStorage.getItem("token")===null) {
 
-/**
-* FUNCTIONS
-*/
+    location.href += 'config.html';
 
-/**
-* Array<Note> -> String
-*/
-function createListView(records) {
-  return `<header><h1>My Notes</h1></header>
-${records.reduce(processChild,"")}`;
-}
-
-function processChild(result,note,index) {
-  return result+
-//<div class="panel"><span onclick="deleteNote(${Number(note.timestamp)})">x</span></div>
-`<article noteId="${Number(note.timestamp)}">
-<header><h1>${(new Date(note.timestamp)).toLocaleString()}</h1></header>
-<p onclick="changeLocation(${note.timestamp})">${makePreview(note.body)}</p>
-<div class="panel"><span>x</span></div>
-</article>`;
-}
-
-function changeLocation(noteId) {
-  location.href += `editor.html?note=${noteId}`;
-}
-
-function deleteNote(ts) {
-  if(window.confirm("Delete note?")) {
-    deleteVal(ts,()=>{location.reload();});
-  }
-}
-
-function navigateToNewNote() {
-  location.href += 'editor.html';
-}
-
-/**
-* String -> String
-* create a shortened version of a note's body
-*/
-function makePreview(anote) {
-  let NOTE_SIZE_THRESHOLD = 50;
-  if(anote.length > NOTE_SIZE_THRESHOLD) {
-    return anote.slice(0,NOTE_SIZE_THRESHOLD);
   } else {
-    return anote;
-  }
-}
 
-/**
-* TEST
-*/
+    var request = indexedDB.open("notes");
 
-const main = document.querySelector("main");
-/**
-* Array<Note> -> Void
-*/
-function initView(records,delCallback) {
-  main.innerHTML = createListView(records.filter(note => note.body!=null));
-  if(delCallback) {
-    document.querySelector("main")
-      .addEventListener("click",function (event){
-        if(event.target.tagName==="SPAN") {
-          //console.log(event.target);
-          delCallback(
-            Number(event.target
-              .parentElement
-                .parentElement.getAttribute("noteid")));
-        }
+    request.onupgradeneeded = function(event) {
+
+      let ts = Date.now();
+      let db = event.target.result;
+      let objStore = db.createObjectStore(ts, { keyPath: "timestamp" });
+      objStore.createIndex("update","update",{ unique: true })
+      objStore.transaction.oncomplete =  function(event) {
+        
+        fetch(url, {
+              method: 'GET',
+        }).then(response=>{ 
+          return response.json();
+        }).then(json=>{
+          populateDB(db,json.files);
+        }).catch((error)=>{
+          console.log(error);
+        });
+      }
+    }
+
+    request.onsuccess = function(event) {
+      let db = event.target.result;
+      getNotes(db,(records)=>{
+        initView(records,deleteVal.bind(db));
       });
+
+      document.body.querySelector("#bar button")
+        .addEventListener("click",((db)=>{
+          return () => {
+              getNotes(db,(notes)=>{
+              updateGist(db,prepUpdate(notes));
+            });
+          }
+        })(db));
+    }
   }
-}
-
-
+})();
