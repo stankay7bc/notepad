@@ -4,18 +4,37 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Config page</title>
+    <style>
+      form > div {
+        /*outline:1px dashed blue;*/
+        display:grid;
+        grid-template-columns: 1fr 5fr;
+        max-width:360px;
+        grid-row-gap:.5em;
+      }
+      form > input[type="submit"] {
+        margin:.75em;
+      }
+    </style>
   </head>
   <body>
     <form onsubmit="getToken(event)">
-        <input type="text" />
-        <input type="submit" />
+      <div>
+        <label>Token</label>
+        <input type="text" name="token" />
+        <label>Gist</label>
+        <input type="text" name="gist" />
+      </div>
+      <input type="submit" />
     </form>
     <script>
         function getToken(event) {
           event.preventDefault();
           let token = event.target.elements[0].value;
+          let gist = event.target.elements[1].value;
           if(typeof token === 'string' && token.length == 40) {
             localStorage.setItem("token",token);
+            localStorage.setItem("gist",gist);
             location.assign(location.pathname.slice(0,-11));
           }
         }

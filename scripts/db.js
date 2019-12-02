@@ -1,6 +1,4 @@
 const apiUrl = "https://api.github.com/gists";
-const id = "5a805f4cee576a9b0e3827153cf651d0";
-const url = `${apiUrl}/${id}`;
 
 /**
  * @param {timestamp} ts 
@@ -15,7 +13,9 @@ function deleteVal(ts) {
       data.body = null;
       data.update = Date.now();
       let update = objectStore.put(data);
-      update.onsuccess = () => {};
+      update.onsuccess = () => {
+        localStorage.setItem("synced",false);
+      };
     };
     transaction.oncomplete = () => {
       window.location.reload();
@@ -72,9 +72,10 @@ function prepUpdate(notes) {
 
 /**
  * @param {IDBDatabase} db 
+ * @param {String} url 
  * @param {Gist} data 
  */
-function updateGist(db,data) {
+function updateGist(db,url,data) {
   fetch(url, {
       method: 'PATCH', 
       body: JSON.stringify(data), 

@@ -1,10 +1,13 @@
 (function() {
  
-  if(localStorage.getItem("token")===null) {
+  if(localStorage.getItem("token")===null || 
+     localStorage.getItem("gist")===null) {
 
     location.href += 'config.html';
 
   } else {
+
+    const url = `${apiUrl}/${localStorage.getItem("gist")}`;
 
     var request = indexedDB.open("notes");
 
@@ -38,7 +41,7 @@
         .addEventListener("click",((db)=>{
           return () => {
               getNotes(db,(notes)=>{
-              updateGist(db,prepUpdate(notes));
+              updateGist(db,url,prepUpdate(notes));
             });
           }
         })(db));
