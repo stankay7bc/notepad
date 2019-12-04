@@ -92,6 +92,23 @@ function updateGist(db,url,data) {
 }
 
 /**
+ * 
+ * @param {String} url 
+ * @param {Object -> Void} callback 
+ */
+function getGist(url,callback) {
+  fetch(url, {
+    method: 'GET',
+  }).then(response=>{ 
+    return response.json();
+  }).then(json=>{
+    callback(json.files);
+  }).catch((error)=>{
+    console.log(error);
+  });
+}
+
+/**
  * @param {IDBDatabase} db 
  * @param {Object} records 
  */

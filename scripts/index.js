@@ -18,15 +18,8 @@
       let objStore = db.createObjectStore(ts, { keyPath: "timestamp" });
       objStore.createIndex("update","update",{ unique: true })
       objStore.transaction.oncomplete =  function(event) {
-        
-        fetch(url, {
-              method: 'GET',
-        }).then(response=>{ 
-          return response.json();
-        }).then(json=>{
-          populateDB(db,json.files);
-        }).catch((error)=>{
-          console.log(error);
+        getGist(url,(data)=>{
+          populateDB(db,data);
         });
       }
     }
@@ -41,7 +34,24 @@
         .addEventListener("click",((db)=>{
           return () => {
               getNotes(db,(notes)=>{
-              updateGist(db,url,prepUpdate(notes));
+                getGist(url,(gist)=>{
+                  let update = notes.reduce((obj,note)=>{ // move to prep update
+                    let filename = `${note.timestamp}.json`;
+                    if(!gist.hasOwnProperty(filename) ||
+                      note.update>JSON.parse(gist[filename].content).update) {
+                      obj.files[filename] = (note.body===null) ? null : {
+                        content: JSON.stringify(note),
+                        filename: filename,
+                      }
+                    }
+                    return obj;
+                  },{
+                    description: "My Notes",
+                    files:{},
+                  });
+                  //console.log(update);
+                  updateGist(db,url,update);
+                });
             });
           }
         })(db));
