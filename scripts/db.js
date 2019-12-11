@@ -118,8 +118,10 @@ function populateDB(db,records) {
   let request = noteObjStore.clear();
   request.onsuccess = () => {
     for (val in records) {
-      var request = noteObjStore.add(
-        JSON.parse(records[val].content));
+      let note = JSON.parse(records[val].content);
+      if(note.body!=null) {
+        var request = noteObjStore.add(note);
+      }
     }
   }
   transaction.oncomplete = (event) => {

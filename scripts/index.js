@@ -39,10 +39,10 @@
                     let filename = `${note.timestamp}.json`;
                     if(!gist.hasOwnProperty(filename) ||
                       note.update>JSON.parse(gist[filename].content).update) {
-                      obj.files[filename] = (note.body===null) ? null : {
+                      obj.files[filename] = {
                         content: JSON.stringify(note),
                         filename: filename,
-                      }
+                      };
                     }
                     return obj;
                   },{
