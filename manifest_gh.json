@@ -1,0 +1,16 @@
+{
+  "short_name": "NOTEPAD",
+  "name": "NOTEPAD APPLICATION",
+  "icons": [
+    {
+      "src":"https://docs.google.com/drawings/d/e/2PACX-1vS5yRYXNRRtdn9W43ygQSgmk-0492aGdnq9wDf_qKkVVrN5nFTir9rPxe7ibEnTaLOrr8YQz_Zdls6e/pub?w=200&h=200",
+      "type":"image/png",
+      "sizes":"200x200"
+    }
+  ],
+  "start_url": "/notepad/",
+  "background_color": "#082c45",
+  "display": "standalone",
+  "scope": "/notepad/",
+  "theme_color": "#082c45"
+}
