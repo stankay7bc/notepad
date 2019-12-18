@@ -57,4 +57,19 @@
         })(db));
     }
   }
+
+  if ('serviceWorker' in navigator) {
+    let prefix = location.host === "stankay7bc.github.io" ? "/notepad" : "";
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register(`${prefix}/sw.js`,{scope:`${prefix}/`}).then(function(registration) {
+        // Registration was successful
+        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+      }, function(err) {
+        // registration failed :(
+        console.log('ServiceWorker registration failed: ', err);
+      });
+    });
+  }
+
+
 })();

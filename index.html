@@ -4,7 +4,14 @@
   
   <!--  Meta  -->
   <meta charset="UTF-8" />
-  <title>My New Pen!</title>
+  <title>My Notes</title>
+  <script>
+    if(location.host==="stankay7bc.github.io") {
+      document.write('<link rel="manifest" href="/notepad/manifest.json">');
+    } else {
+      document.write('<link rel="manifest" href="/manifest.json">');
+    }
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <!--  Styles  -->
