@@ -5,6 +5,7 @@ var urlsCache = [
   `${prefix}/editor.html`,
   `${prefix}/styles/index.css`,
   `${prefix}/styles/editor.css`,
+  `${prefix}/scripts/db.js`,
   `${prefix}/scripts/editor.js`,
   `${prefix}/scripts/index.js`,
   `${prefix}/scripts/index_ui.js`,
